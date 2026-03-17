@@ -95,8 +95,8 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: flex-start;
+      justify-content: flex-start;
+      align-items: center;
       margin-bottom: 18px;
     }
 
@@ -105,11 +105,11 @@
       gap: 10px;
       flex-wrap: wrap;
       align-items: center;
+      width: 100%;
     }
 
     .toolbar-right {
-      flex: 1 1 420px;
-      min-width: 280px;
+      flex: 1 1 auto;
     }
 
     .score-note {
@@ -119,6 +119,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px 12px;
+      flex: 1 1 520px;
     }
 
     button {
@@ -247,8 +248,8 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>ระบบคำนวณเกรดเฉลี่ยสะสม</h1>
-      <p>นักศึกษาสามารถกรอกเกรดของปี 1-2 เพื่อดู GPA รายภาค และ GPAX รวมทั้งหมด สำหรับใช้ประกอบการเลือกเอกในปีที่ 3</p>
+      <h1>ระบบคำนวณเกรดเฉลี่ยสะสมของหลักสูตรเทคโนโลยีบัณฑิตสำหรับเลือกเอก</h1>
+      <p>นักศึกษาสามารถกรอกเกรดของปี 1-2 เพื่อดู GPA รายภาค และ GPAX รวมทั้งหมด (เฉพาะกลุ่มวิชาเฉพาะ) สำหรับใช้ประกอบการเลือกเอกในปีที่ 3 </p>
     </div>
 
     <div class="print-header">
@@ -282,14 +283,12 @@
 
     <div class="toolbar">
       <div class="toolbar-left">
-        <button class="btn-primary" onclick="window.print()">พิมพ์ / Save PDF</button>
-        <button class="btn-secondary" onclick="fillExample()">กรอกตัวอย่าง</button>
-        <button class="btn-danger" onclick="resetGrades()">ล้างข้อมูล</button>
-      </div>
-      <div class="toolbar-right">
         <div class="score-note">
           ความหมายคะแนน: A = 4.0, B+ = 3.5, B = 3.0, C+ = 2.5, C = 2.0, D+ = 1.5, D = 1.0, F = 0 และ W = 0 โดยระบบคำนวณจาก ผลรวม(คะแนนเกรด × หน่วยกิต) ÷ หน่วยกิตที่นำมาคิดทั้งหมด
         </div>
+        <button class="btn-primary" onclick="window.print()">พิมพ์ / Save PDF</button>
+        <button class="btn-secondary" onclick="fillExample()">กรอกตัวอย่าง</button>
+        <button class="btn-danger" onclick="resetGrades()">ล้างข้อมูล</button>
       </div>
     </div>
 
