@@ -243,6 +243,141 @@
       .print-header { display: block; margin-bottom: 16px; }
       .term-card, .info-box { box-shadow: none; }
     }
+
+    @media (max-width: 768px) {
+      .container {
+        max-width: 100%;
+        margin: 0;
+        padding: 10px 8px 20px;
+      }
+
+      .header {
+        margin-bottom: 12px;
+      }
+
+      .header h1 {
+        font-size: 1.35rem;
+      }
+
+      .header p {
+        font-size: 0.88rem;
+      }
+
+      .student-box,
+      .summary-grid,
+      .term-summary {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .info-box {
+        padding: 10px 12px;
+      }
+
+      .info-box .label,
+      .mini-box .mini-label {
+        font-size: 0.8rem;
+      }
+
+      .info-box .value {
+        font-size: 1.15rem;
+      }
+
+      .mini-box .mini-value {
+        font-size: 1rem;
+      }
+
+      .toolbar,
+      .toolbar-left {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+        gap: 8px;
+      }
+
+      .score-note {
+        flex: unset;
+        width: 100%;
+        font-size: 0.82rem;
+        padding: 8px 10px;
+      }
+
+      .toolbar button {
+        width: 100%;
+        padding: 10px 12px;
+      }
+
+      .term-card {
+        border-radius: 12px;
+        margin-bottom: 14px;
+      }
+
+      .term-header {
+        padding: 10px 12px;
+      }
+
+      .term-header h2 {
+        font-size: 1rem;
+      }
+
+      .term-sub {
+        font-size: 0.82rem;
+      }
+
+      .table-wrap {
+        padding: 8px;
+        overflow: visible;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+        width: 100%;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: grid;
+        gap: 8px;
+      }
+
+      tr {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        padding: 8px;
+      }
+
+      td {
+        border-bottom: 0;
+        padding: 4px 0;
+        text-align: left;
+      }
+
+      td::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #1e3a8a;
+        margin-bottom: 2px;
+      }
+
+      .grade-select {
+        min-height: 40px;
+      }
+
+      .footer-note {
+        font-size: 0.84rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -415,17 +550,17 @@
 
           return `
             <tr>
-              <td>${index + 1}</td>
-              <td>${course.code}</td>
-              <td>${course.name}</td>
-              <td>${course.sec}</td>
-              <td>${course.credits}</td>
-              <td>
+              <td data-label="ลำดับ">${index + 1}</td>
+              <td data-label="รหัสวิชา">${course.code}</td>
+              <td data-label="ชื่อวิชา">${course.name}</td>
+              <td data-label="Sec.">${course.sec}</td>
+              <td data-label="หน่วยกิต">${course.credits}</td>
+              <td data-label="เกรด">
                 <select class="grade-select" onchange="updateGrade('${term.key}', '${course.code}', this.value)">
                   ${renderGradeOptions(course.grade)}
                 </select>
               </td>
-              <td>${point}</td>
+              <td data-label="คะแนนวิชา">${point}</td>
             </tr>
           `;
         }).join("");
