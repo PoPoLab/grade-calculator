@@ -101,20 +101,18 @@
     }
 
     .toolbar-left {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .toolbar-right {
       flex: 1 1 420px;
       min-width: 280px;
     }
 
-    .toolbar-right {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      align-items: center;
-    }
-
     .score-note {
-      margin-top: 10px;
       font-size: 0.92rem;
       color: var(--muted);
       background: #f8fafc;
@@ -284,14 +282,14 @@
 
     <div class="toolbar">
       <div class="toolbar-left">
-        <div class="score-note">
-          ความหมายคะแนน: A = 4.0, B+ = 3.5, B = 3.0, C+ = 2.5, C = 2.0, D+ = 1.5, D = 1.0, F = 0 และ W = 0 โดยระบบคำนวณจาก ผลรวม(คะแนนเกรด × หน่วยกิต) ÷ หน่วยกิตที่นำมาคิดทั้งหมด
-        </div>
-      </div>
-      <div class="toolbar-right">
         <button class="btn-primary" onclick="window.print()">พิมพ์ / Save PDF</button>
         <button class="btn-secondary" onclick="fillExample()">กรอกตัวอย่าง</button>
         <button class="btn-danger" onclick="resetGrades()">ล้างข้อมูล</button>
+      </div>
+      <div class="toolbar-right">
+        <div class="score-note">
+          ความหมายคะแนน: A = 4.0, B+ = 3.5, B = 3.0, C+ = 2.5, C = 2.0, D+ = 1.5, D = 1.0, F = 0 และ W = 0 โดยระบบคำนวณจาก ผลรวม(คะแนนเกรด × หน่วยกิต) ÷ หน่วยกิตที่นำมาคิดทั้งหมด
+        </div>
       </div>
     </div>
 
