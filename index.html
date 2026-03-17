@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ระบบคำนวณเกรด</title>
+  <title>ระบบคำนวณเกรดแยกตามปีการศึกษา</title>
   <style>
     :root {
       --bg: #f5f7fb;
@@ -15,6 +15,8 @@
       --primary-hover: #1d4ed8;
       --success: #059669;
       --danger: #dc2626;
+      --tab: #eef2ff;
+      --tab-active: #dbeafe;
     }
 
     * { box-sizing: border-box; }
@@ -27,7 +29,7 @@
     }
 
     .container {
-      max-width: 1080px;
+      max-width: 1160px;
       margin: 32px auto;
       padding: 0 16px 32px;
     }
@@ -47,12 +49,54 @@
       color: var(--muted);
     }
 
-    .card {
-      background: var(--card);
+    .student-box {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .student-box input,
+    .input,
+    .grade-select {
+      width: 100%;
+      padding: 11px 12px;
       border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-      overflow: hidden;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .tab-btn {
+      border: 1px solid #c7d2fe;
+      background: var(--tab);
+      color: #1e3a8a;
+      padding: 12px 14px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 0.96rem;
+      font-weight: 700;
+      text-align: center;
+      transition: 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--tab-active);
+      border-color: #93c5fd;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
+    }
+
+    .term-title {
+      margin: 0 0 14px;
+      font-size: 1.2rem;
+      color: #1e3a8a;
     }
 
     .info-grid {
@@ -96,15 +140,6 @@
       align-items: center;
     }
 
-    .input {
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      background: #fff;
-      min-width: 220px;
-    }
-
     button {
       border: 0;
       border-radius: 10px;
@@ -131,6 +166,15 @@
       color: white;
     }
 
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+      padding: 18px;
+    }
+
     .table-wrap {
       overflow-x: auto;
       background: var(--card);
@@ -141,7 +185,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 820px;
+      min-width: 860px;
     }
 
     th, td {
@@ -161,40 +205,10 @@
       background: #fafcff;
     }
 
-    .grade-select {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      font-size: 0.95rem;
-      background: white;
-    }
-
     .footer-note {
       margin-top: 16px;
       font-size: 0.9rem;
       color: var(--muted);
-    }
-
-    .student-box {
-      margin-bottom: 18px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-    }
-
-    .student-box input {
-      width: 100%;
-      padding: 11px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      background: white;
-    }
-
-    .pass {
-      color: var(--success);
-      font-weight: 700;
     }
 
     .print-header {
@@ -202,22 +216,10 @@
     }
 
     @media print {
-      body {
-        background: white;
-      }
-
-      .toolbar, .footer-note, .header p {
-        display: none !important;
-      }
-
-      .print-header {
-        display: block;
-        margin-bottom: 16px;
-      }
-
-      .card, .table-wrap, .info-box {
-        box-shadow: none;
-      }
+      body { background: white; }
+      .tabs, .toolbar, .footer-note, .header p { display: none !important; }
+      .print-header { display: block; margin-bottom: 16px; }
+      .card, .table-wrap, .info-box { box-shadow: none; }
     }
   </style>
 </head>
@@ -225,7 +227,7 @@
   <div class="container">
     <div class="header">
       <h1>ระบบคำนวณเกรดเฉลี่ย</h1>
-      <p>กรอกเกรดของแต่ละรายวิชา ระบบจะคำนวณ GPA ให้อัตโนมัติ</p>
+      <p>แยกตามปีการศึกษาและภาคการศึกษา โดยอิงข้อมูลรายวิชา ปี 1 (2567) และปี 2 (2568)</p>
     </div>
 
     <div class="print-header">
@@ -238,21 +240,23 @@
       <input type="text" id="studentName" placeholder="ชื่อ-นามสกุล" />
     </div>
 
+    <div class="tabs" id="tabs"></div>
+
     <div class="info-grid">
       <div class="info-box">
-        <div class="label">หน่วยกิตรวมทั้งหมด</div>
-        <div class="value" id="totalCredits">0</div>
+        <div class="label">ปี / ภาคการศึกษาที่เลือก</div>
+        <div class="value" id="selectedTermLabel">-</div>
       </div>
       <div class="info-box">
-        <div class="label">หน่วยกิตที่คำนวณแล้ว</div>
-        <div class="value" id="countedCredits">0</div>
+        <div class="label">หน่วยกิตรวมของภาคนี้</div>
+        <div class="value" id="totalCredits">0</div>
       </div>
       <div class="info-box">
         <div class="label">คะแนนรวม</div>
         <div class="value" id="totalPoints">0.00</div>
       </div>
       <div class="info-box">
-        <div class="label">GPA</div>
+        <div class="label">GPA ภาคนี้</div>
         <div class="value" id="gpa">0.00</div>
       </div>
     </div>
@@ -269,6 +273,7 @@
     </div>
 
     <div class="card">
+      <h2 class="term-title" id="termTitle"></h2>
       <div class="table-wrap">
         <table>
           <thead>
@@ -276,6 +281,7 @@
               <th style="width: 70px;">ลำดับ</th>
               <th style="width: 140px;">รหัสวิชา</th>
               <th>ชื่อวิชา</th>
+              <th style="width: 80px;">Sec.</th>
               <th style="width: 120px;">หน่วยกิต</th>
               <th style="width: 160px;">เกรด</th>
               <th style="width: 140px;">คะแนนวิชา</th>
@@ -287,7 +293,7 @@
     </div>
 
     <div class="footer-note">
-      หมายเหตุ: สามารถแก้ไขรายวิชาและหน่วยกิตได้ในตัวแปร <strong>courses</strong> ภายในโค้ดนี้
+      หมายเหตุ: รายวิชาถูกจัดเป็น 4 กลุ่ม ได้แก่ ปีที่ 1 ภาคการศึกษาที่ 1, ปีที่ 1 ภาคการศึกษาที่ 2, ปีที่ 2 ภาคการศึกษาที่ 1 และ ปีที่ 2 ภาคการศึกษาที่ 2
     </div>
   </div>
 
@@ -304,30 +310,94 @@
       "F": 0.0
     };
 
-    const courses = [
-      { code: "GE101", name: "ภาษาไทยเพื่อการสื่อสาร", credits: 3, grade: "" },
-      { code: "GE102", name: "ภาษาอังกฤษพื้นฐาน", credits: 3, grade: "" },
-      { code: "SC101", name: "วิทยาศาสตร์ในชีวิตประจำวัน", credits: 3, grade: "" },
-      { code: "MA101", name: "คณิตศาสตร์เบื้องต้น", credits: 3, grade: "" },
-      { code: "IT101", name: "เทคโนโลยีสารสนเทศเบื้องต้น", credits: 3, grade: "" },
-      { code: "EN201", name: "การเขียนโปรแกรมเบื้องต้น", credits: 3, grade: "" },
-      { code: "EN202", name: "วงจรไฟฟ้าเบื้องต้น", credits: 3, grade: "" },
-      { code: "EN203", name: "เซนเซอร์และระบบตรวจวัด", credits: 2, grade: "" },
-      { code: "EN204", name: "การออกแบบนวัตกรรม", credits: 2, grade: "" },
-      { code: "PE101", name: "กิจกรรมเพื่อสุขภาพ", credits: 1, grade: "" }
-    ];
+    const terms = {
+      year1_sem1: {
+        label: "ปีที่ 1 ภาคการศึกษาที่ 1 (2567)",
+        year: 1,
+        semester: 1,
+        courses: [
+          { code: "4045104", name: "วัสดุอุตสาหกรรม", sec: "01", credits: 3, grade: "" },
+          { code: "4045107", name: "ปฏิบัติงานเทคโนโลยีพื้นฐานงานผลิต 1", sec: "01", credits: 3, grade: "" },
+          { code: "4045114", name: "ระบบรางและทรัพยากรอาคารเบื้องต้น", sec: "01", credits: 1, grade: "" },
+          { code: "4045116", name: "หลักการอ่านแบบ และเขียนแบบเครื่องกลเบื้องต้น", sec: "01", credits: 3, grade: "" },
+          { code: "4045118", name: "งานช่างกล", sec: "01", credits: 2, grade: "" },
+          { code: "5011114", name: "ภาษาอังกฤษปรับพื้นฐาน", sec: "02", credits: 3, grade: "" }
+        ]
+      },
+      year1_sem2: {
+        label: "ปีที่ 1 ภาคการศึกษาที่ 2 (2567)",
+        year: 1,
+        semester: 2,
+        courses: [
+          { code: "4045101", name: "ฟิสิกส์สำหรับงานช่างซ่อมบำรุง", sec: "01", credits: 3, grade: "" },
+          { code: "4045102", name: "คณิตศาสตร์สำหรับช่างซ่อมบำรุง", sec: "01", credits: 3, grade: "" },
+          { code: "4045106", name: "พื้นฐานงานคอมพิวเตอร์สำนักงานและอินโฟกราฟิก", sec: "01", credits: 3, grade: "" },
+          { code: "4045109", name: "ปฏิบัติงานเชื่อมโลหะ", sec: "01", credits: 3, grade: "" },
+          { code: "4045117", name: "พื้นฐานงานไฟฟ้า", sec: "01", credits: 3, grade: "" },
+          { code: "5011115", name: "ภาษาอังกฤษเบื้องต้น", sec: "02", credits: 3, grade: "" }
+        ]
+      },
+      year2_sem1: {
+        label: "ปีที่ 2 ภาคการศึกษาที่ 1 (2568)",
+        year: 2,
+        semester: 1,
+        courses: [
+          { code: "4045103", name: "การแปลงผัน และอนุรักษ์พลังงาน", sec: "01", credits: 3, grade: "" },
+          { code: "4045105", name: "อาชีวอนามัย และความปลอดภัยในสถานประกอบการ", sec: "01", credits: 3, grade: "" },
+          { code: "4045119", name: "มอเตอร์ไฟฟ้า และการควบคุม", sec: "01", credits: 3, grade: "" }
+        ]
+      },
+      year2_sem2: {
+        label: "ปีที่ 2 ภาคการศึกษาที่ 2 (2568)",
+        year: 2,
+        semester: 2,
+        courses: [
+          { code: "4045108", name: "ปฏิบัติงานเทคโนโลยีพื้นฐานงานผลิต 2", sec: "01", credits: 3, grade: "" },
+          { code: "4045115", name: "การเลือกใช้ชิ้นส่วนมาตรฐานทางกล", sec: "01", credits: 3, grade: "" },
+          { code: "4045120", name: "งานเทคโนโลยีระบบควบคุมไฟฟ้าอัตโนมัติ", sec: "01", credits: 3, grade: "" },
+          { code: "4045121", name: "ระบบควบคุมด้วยนิวเมติกส์และไฮดรอลิกส์", sec: "01", credits: 3, grade: "" },
+          { code: "4045123", name: "งานเครื่องทำความเย็น และเครื่องปรับอากาศ", sec: "01", credits: 3, grade: "" }
+        ]
+      }
+    };
 
+    let currentTermKey = "year1_sem1";
+
+    const tabs = document.getElementById("tabs");
     const tableBody = document.getElementById("courseTableBody");
     const searchBox = document.getElementById("searchBox");
+
+    function getCurrentCourses() {
+      return terms[currentTermKey].courses;
+    }
+
+    function renderTabs() {
+      tabs.innerHTML = "";
+      Object.entries(terms).forEach(([key, term]) => {
+        const btn = document.createElement("button");
+        btn.className = `tab-btn ${key === currentTermKey ? "active" : ""}`;
+        btn.textContent = term.label;
+        btn.onclick = () => {
+          currentTermKey = key;
+          searchBox.value = "";
+          renderTabs();
+          renderTable();
+        };
+        tabs.appendChild(btn);
+      });
+    }
 
     function renderTable(filter = "") {
       tableBody.innerHTML = "";
       const keyword = filter.trim().toLowerCase();
-
-      const filteredCourses = courses.filter(course =>
+      const currentTerm = terms[currentTermKey];
+      const filteredCourses = currentTerm.courses.filter(course =>
         course.code.toLowerCase().includes(keyword) ||
         course.name.toLowerCase().includes(keyword)
       );
+
+      document.getElementById("termTitle").textContent = currentTerm.label;
+      document.getElementById("selectedTermLabel").textContent = `${currentTerm.year}/${currentTerm.semester}`;
 
       filteredCourses.forEach((course, index) => {
         const tr = document.createElement("tr");
@@ -337,9 +407,10 @@
           <td>${index + 1}</td>
           <td>${course.code}</td>
           <td>${course.name}</td>
+          <td>${course.sec}</td>
           <td>${course.credits}</td>
           <td>
-            <select class="grade-select" onchange="updateGrade('${course.code}', this.value)">
+            <select class="grade-select" onchange="updateGrade('${currentTermKey}', '${course.code}', this.value)">
               ${renderGradeOptions(course.grade)}
             </select>
           </td>
@@ -358,8 +429,8 @@
       }).join("");
     }
 
-    function updateGrade(code, grade) {
-      const course = courses.find(c => c.code === code);
+    function updateGrade(termKey, code, grade) {
+      const course = terms[termKey].courses.find(c => c.code === code);
       if (course) {
         course.grade = grade;
         renderTable(searchBox.value);
@@ -367,22 +438,20 @@
     }
 
     function calculateGPA() {
-      const totalCredits = courses.reduce((sum, c) => sum + c.credits, 0);
-      let countedCredits = 0;
+      const currentTerm = terms[currentTermKey];
+      const totalCredits = currentTerm.courses.reduce((sum, c) => sum + c.credits, 0);
       let totalPoints = 0;
 
-      for (const course of courses) {
+      for (const course of currentTerm.courses) {
         const gp = gradeMap[course.grade];
         if (gp !== null) {
-          countedCredits += course.credits;
           totalPoints += gp * course.credits;
         }
       }
 
-      const gpa = countedCredits > 0 ? totalPoints / countedCredits : 0;
+      const gpa = totalCredits > 0 ? totalPoints / totalCredits : 0;
 
       document.getElementById("totalCredits").textContent = totalCredits;
-      document.getElementById("countedCredits").textContent = countedCredits;
       document.getElementById("totalPoints").textContent = totalPoints.toFixed(2);
       document.getElementById("gpa").textContent = gpa.toFixed(2);
 
@@ -391,12 +460,15 @@
       document.getElementById("printStudentInfo").innerHTML = `
         <div>รหัสนักศึกษา: ${sid || "-"}</div>
         <div>ชื่อ-นามสกุล: ${sname || "-"}</div>
+        <div>ภาคการศึกษา: ${currentTerm.label}</div>
         <div>GPA: ${gpa.toFixed(2)}</div>
       `;
     }
 
     function resetGrades() {
-      courses.forEach(c => c.grade = "");
+      Object.values(terms).forEach(term => {
+        term.courses.forEach(course => course.grade = "");
+      });
       document.getElementById("studentId").value = "";
       document.getElementById("studentName").value = "";
       searchBox.value = "";
@@ -404,8 +476,19 @@
     }
 
     function fillExample() {
-      const sampleGrades = ["A", "B+", "B", "A", "C+", "B", "B+", "A", "C", "A"];
-      courses.forEach((c, i) => c.grade = sampleGrades[i] || "");
+      const samples = {
+        year1_sem1: ["A", "B+", "B", "A", "C+", "A"],
+        year1_sem2: ["B", "B+", "A", "C+", "B", "A"],
+        year2_sem1: ["A", "B+", "B"],
+        year2_sem2: ["A", "B", "B+", "A", "C+"]
+      };
+
+      Object.entries(samples).forEach(([termKey, grades]) => {
+        terms[termKey].courses.forEach((course, index) => {
+          course.grade = grades[index] || "";
+        });
+      });
+
       document.getElementById("studentId").value = "6712345678";
       document.getElementById("studentName").value = "ตัวอย่าง นักศึกษา";
       renderTable(searchBox.value);
@@ -418,6 +501,7 @@
     document.getElementById("studentId").addEventListener("input", calculateGPA);
     document.getElementById("studentName").addEventListener("input", calculateGPA);
 
+    renderTabs();
     renderTable();
   </script>
 </body>
