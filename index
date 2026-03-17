@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ระบบคำนวณเกรด</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #dbe3ef;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #059669;
+      --danger: #dc2626;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 32px auto;
+      padding: 0 16px 32px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .info-box .label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .info-box .value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .left-tools, .right-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: #fff;
+      min-width: 220px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: #eff6ff;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+
+    tr:hover td {
+      background: #fafcff;
+    }
+
+    .grade-select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .student-box {
+      margin-bottom: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .student-box input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .pass {
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .print-header {
+      display: none;
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .toolbar, .footer-note, .header p {
+        display: none !important;
+      }
+
+      .print-header {
+        display: block;
+        margin-bottom: 16px;
+      }
+
+      .card, .table-wrap, .info-box {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ระบบคำนวณเกรดเฉลี่ย</h1>
+      <p>กรอกเกรดของแต่ละรายวิชา ระบบจะคำนวณ GPA ให้อัตโนมัติ</p>
+    </div>
+
+    <div class="print-header">
+      <h2>ผลการคำนวณเกรดเฉลี่ย</h2>
+      <div id="printStudentInfo"></div>
+    </div>
+
+    <div class="student-box">
+      <input type="text" id="studentId" placeholder="รหัสนักศึกษา" />
+      <input type="text" id="studentName" placeholder="ชื่อ-นามสกุล" />
+    </div>
+
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="label">หน่วยกิตรวมทั้งหมด</div>
+        <div class="value" id="totalCredits">0</div>
+      </div>
+      <div class="info-box">
+        <div class="label">หน่วยกิตที่คำนวณแล้ว</div>
+        <div class="value" id="countedCredits">0</div>
+      </div>
+      <div class="info-box">
+        <div class="label">คะแนนรวม</div>
+        <div class="value" id="totalPoints">0.00</div>
+      </div>
+      <div class="info-box">
+        <div class="label">GPA</div>
+        <div class="value" id="gpa">0.00</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="left-tools">
+        <input class="input" id="searchBox" type="text" placeholder="ค้นหารายวิชา / รหัสวิชา" />
+      </div>
+      <div class="right-tools">
+        <button class="btn-primary" onclick="window.print()">พิมพ์ / Save PDF</button>
+        <button class="btn-secondary" onclick="fillExample()">กรอกตัวอย่าง</button>
+        <button class="btn-danger" onclick="resetGrades()">ล้างข้อมูล</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 70px;">ลำดับ</th>
+              <th style="width: 140px;">รหัสวิชา</th>
+              <th>ชื่อวิชา</th>
+              <th style="width: 120px;">หน่วยกิต</th>
+              <th style="width: 160px;">เกรด</th>
+              <th style="width: 140px;">คะแนนวิชา</th>
+            </tr>
+          </thead>
+          <tbody id="courseTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      หมายเหตุ: สามารถแก้ไขรายวิชาและหน่วยกิตได้ในตัวแปร <strong>courses</strong> ภายในโค้ดนี้
+    </div>
+  </div>
+
+  <script>
+    const gradeMap = {
+      "": null,
+      "A": 4.0,
+      "B+": 3.5,
+      "B": 3.0,
+      "C+": 2.5,
+      "C": 2.0,
+      "D+": 1.5,
+      "D": 1.0,
+      "F": 0.0
+    };
+
+    const courses = [
+      { code: "GE101", name: "ภาษาไทยเพื่อการสื่อสาร", credits: 3, grade: "" },
+      { code: "GE102", name: "ภาษาอังกฤษพื้นฐาน", credits: 3, grade: "" },
+      { code: "SC101", name: "วิทยาศาสตร์ในชีวิตประจำวัน", credits: 3, grade: "" },
+      { code: "MA101", name: "คณิตศาสตร์เบื้องต้น", credits: 3, grade: "" },
+      { code: "IT101", name: "เทคโนโลยีสารสนเทศเบื้องต้น", credits: 3, grade: "" },
+      { code: "EN201", name: "การเขียนโปรแกรมเบื้องต้น", credits: 3, grade: "" },
+      { code: "EN202", name: "วงจรไฟฟ้าเบื้องต้น", credits: 3, grade: "" },
+      { code: "EN203", name: "เซนเซอร์และระบบตรวจวัด", credits: 2, grade: "" },
+      { code: "EN204", name: "การออกแบบนวัตกรรม", credits: 2, grade: "" },
+      { code: "PE101", name: "กิจกรรมเพื่อสุขภาพ", credits: 1, grade: "" }
+    ];
+
+    const tableBody = document.getElementById("courseTableBody");
+    const searchBox = document.getElementById("searchBox");
+
+    function renderTable(filter = "") {
+      tableBody.innerHTML = "";
+      const keyword = filter.trim().toLowerCase();
+
+      const filteredCourses = courses.filter(course =>
+        course.code.toLowerCase().includes(keyword) ||
+        course.name.toLowerCase().includes(keyword)
+      );
+
+      filteredCourses.forEach((course, index) => {
+        const tr = document.createElement("tr");
+        const point = gradeMap[course.grade] !== null ? (gradeMap[course.grade] * course.credits).toFixed(2) : "-";
+
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${course.code}</td>
+          <td>${course.name}</td>
+          <td>${course.credits}</td>
+          <td>
+            <select class="grade-select" onchange="updateGrade('${course.code}', this.value)">
+              ${renderGradeOptions(course.grade)}
+            </select>
+          </td>
+          <td>${point}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      calculateGPA();
+    }
+
+    function renderGradeOptions(selectedGrade) {
+      return Object.keys(gradeMap).map(grade => {
+        const label = grade === "" ? "-- เลือกเกรด --" : grade;
+        return `<option value="${grade}" ${grade === selectedGrade ? "selected" : ""}>${label}</option>`;
+      }).join("");
+    }
+
+    function updateGrade(code, grade) {
+      const course = courses.find(c => c.code === code);
+      if (course) {
+        course.grade = grade;
+        renderTable(searchBox.value);
+      }
+    }
+
+    function calculateGPA() {
+      const totalCredits = courses.reduce((sum, c) => sum + c.credits, 0);
+      let countedCredits = 0;
+      let totalPoints = 0;
+
+      for (const course of courses) {
+        const gp = gradeMap[course.grade];
+        if (gp !== null) {
+          countedCredits += course.credits;
+          totalPoints += gp * course.credits;
+        }
+      }
+
+      const gpa = countedCredits > 0 ? totalPoints / countedCredits : 0;
+
+      document.getElementById("totalCredits").textContent = totalCredits;
+      document.getElementById("countedCredits").textContent = countedCredits;
+      document.getElementById("totalPoints").textContent = totalPoints.toFixed(2);
+      document.getElementById("gpa").textContent = gpa.toFixed(2);
+
+      const sid = document.getElementById("studentId").value.trim();
+      const sname = document.getElementById("studentName").value.trim();
+      document.getElementById("printStudentInfo").innerHTML = `
+        <div>รหัสนักศึกษา: ${sid || "-"}</div>
+        <div>ชื่อ-นามสกุล: ${sname || "-"}</div>
+        <div>GPA: ${gpa.toFixed(2)}</div>
+      `;
+    }
+
+    function resetGrades() {
+      courses.forEach(c => c.grade = "");
+      document.getElementById("studentId").value = "";
+      document.getElementById("studentName").value = "";
+      searchBox.value = "";
+      renderTable();
+    }
+
+    function fillExample() {
+      const sampleGrades = ["A", "B+", "B", "A", "C+", "B", "B+", "A", "C", "A"];
+      courses.forEach((c, i) => c.grade = sampleGrades[i] || "");
+      document.getElementById("studentId").value = "6712345678";
+      document.getElementById("studentName").value = "ตัวอย่าง นักศึกษา";
+      renderTable(searchBox.value);
+    }
+
+    searchBox.addEventListener("input", (e) => {
+      renderTable(e.target.value);
+    });
+
+    document.getElementById("studentId").addEventListener("input", calculateGPA);
+    document.getElementById("studentName").addEventListener("input", calculateGPA);
+
+    renderTable();
+  </script>
+</body>
+</html>
