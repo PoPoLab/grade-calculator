@@ -100,6 +100,19 @@
       margin-bottom: 18px;
     }
 
+    .gpax-action {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .gpax-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
     .toolbar-left {
       display: flex;
       gap: 10px;
@@ -129,6 +142,11 @@
       font-size: 0.95rem;
       cursor: pointer;
       transition: 0.2s ease;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
     .btn-primary {
@@ -239,8 +257,7 @@
 
     @media print {
       body { background: white; }
-      .toolbar, .footer-note, .header p { display: none !important; }
-      .print-header { display: block; margin-bottom: 16px; }
+      .toolbar, .footer-note, .header p, .gpax-action { display: none !important; }
       .term-card, .info-box { box-shadow: none; }
     }
 
@@ -263,7 +280,6 @@
         font-size: 0.88rem;
       }
 
-      .student-box,
       .summary-grid,
       .term-summary {
         grid-template-columns: 1fr;
@@ -288,7 +304,8 @@
       }
 
       .toolbar,
-      .toolbar-left {
+      .toolbar-left,
+      .gpax-action {
         display: grid;
         grid-template-columns: 1fr;
         width: 100%;
@@ -302,7 +319,8 @@
         padding: 8px 10px;
       }
 
-      .toolbar button {
+      .toolbar button,
+      .gpax-action button {
         width: 100%;
         padding: 10px 12px;
       }
@@ -387,16 +405,7 @@
       <p>นักศึกษาสามารถกรอกเกรดของปี 1-2 เพื่อดู GPA รายภาค และ GPAX รวมทั้งหมด (เฉพาะกลุ่มวิชาเฉพาะ) สำหรับใช้ประกอบการเลือกเอกในปีที่ 3 </p>
     </div>
 
-    <div class="print-header">
-      <h2>ผลการคำนวณ GPA และ GPAX</h2>
-      <div id="printStudentInfo"></div>
-    </div>
-
-    <div class="student-box">
-      <input type="text" id="studentId" placeholder="รหัสนักศึกษา" />
-      <input type="text" id="studentName" placeholder="ชื่อ-นามสกุล" />
-    </div>
-
+    
     <div class="summary-grid">
       <div class="info-box">
         <div class="label">จำนวนภาคการศึกษา</div>
@@ -412,8 +421,13 @@
       </div>
       <div class="info-box">
         <div class="label">GPAX รวม</div>
-        <div class="value" id="grandGpax">0.00</div>
+        <div class="value" id="grandGpax">-</div>
       </div>
+    </div>
+
+    <div class="gpax-action">
+      <button class="btn-primary" id="calculateGpaxBtn" onclick="calculateOverallGpax()" disabled>คำนวณ GPAX รวม</button>
+      <div class="gpax-note" id="gpaxNote">กรอกเกรดให้ครบทุกวิชาก่อน จึงจะสามารถคำนวณ GPAX รวมได้</div>
     </div>
 
     <div class="toolbar">
@@ -421,8 +435,7 @@
         <div class="score-note">
           ความหมายคะแนน: A = 4.0, B+ = 3.5, B = 3.0, C+ = 2.5, C = 2.0, D+ = 1.5, D = 1.0, F = 0 และ W = 0 โดยระบบคำนวณจาก ผลรวม(คะแนนเกรด × หน่วยกิต) ÷ หน่วยกิตที่นำมาคิดทั้งหมด
         </div>
-        <button class="btn-primary" onclick="window.print()">พิมพ์ / Save PDF</button>
-        <button class="btn-secondary" onclick="fillExample()">กรอกตัวอย่าง</button>
+                <button class="btn-secondary" onclick="fillExample()">กรอกตัวอย่าง</button>
         <button class="btn-danger" onclick="resetGrades()">ล้างข้อมูล</button>
       </div>
     </div>
@@ -534,12 +547,17 @@
       let grandCredits = 0;
       let grandPoints = 0;
       let grandCountedCredits = 0;
+      let allFilled = true;
 
       terms.forEach((term) => {
         const stats = getTermStats(term);
         grandCredits += stats.totalCredits;
         grandPoints += stats.totalPoints;
         grandCountedCredits += stats.countedCredits;
+
+        term.courses.forEach(course => {
+          if (course.grade === "") allFilled = false;
+        });
 
         const card = document.createElement("div");
         card.className = "term-card";
@@ -609,27 +627,43 @@
         termsContainer.appendChild(card);
       });
 
-      const grandGpax = grandCountedCredits > 0 ? grandPoints / grandCountedCredits : 0;
       document.getElementById("grandCredits").textContent = grandCredits;
       document.getElementById("grandPoints").textContent = grandPoints.toFixed(2);
-      document.getElementById("grandGpax").textContent = grandGpax.toFixed(2);
 
-      const sid = document.getElementById("studentId").value.trim();
-      const sname = document.getElementById("studentName").value.trim();
-      document.getElementById("printStudentInfo").innerHTML = `
-        <div>รหัสนักศึกษา: ${sid || "-"}</div>
-        <div>ชื่อ-นามสกุล: ${sname || "-"}</div>
-        <div>หน่วยกิตรวมทั้งหมด: ${grandCredits}</div>
-        <div>คะแนนรวมทั้งหมด: ${grandPoints.toFixed(2)}</div>
-        <div>GPAX รวม: ${grandGpax.toFixed(2)}</div>
-      `;
+      const btn = document.getElementById("calculateGpaxBtn");
+      const note = document.getElementById("gpaxNote");
+      btn.disabled = !allFilled;
+
+      if (allFilled) {
+        note.textContent = "กรอกเกรดครบแล้ว สามารถกดคำนวณ GPAX รวมได้";
+      } else {
+        note.textContent = "กรอกเกรดให้ครบทุกวิชาก่อน จึงจะสามารถคำนวณ GPAX รวมได้";
+        document.getElementById("grandGpax").textContent = "-";
+      }
     }
 
     function resetGrades() {
       terms.forEach(term => term.courses.forEach(course => course.grade = ""));
-      document.getElementById("studentId").value = "";
-      document.getElementById("studentName").value = "";
+      document.getElementById("grandGpax").textContent = "-";
       renderAll();
+    }
+
+    function calculateOverallGpax() {
+      const allCourses = terms.flatMap(term => term.courses);
+      const incomplete = allCourses.some(course => course.grade === "");
+      if (incomplete) return;
+
+      let totalPoints = 0;
+      let totalCredits = 0;
+
+      allCourses.forEach(course => {
+        totalPoints += gradeMap[course.grade] * course.credits;
+        totalCredits += course.credits;
+      });
+
+      const gpax = totalCredits > 0 ? totalPoints / totalCredits : 0;
+      document.getElementById("grandGpax").textContent = gpax.toFixed(2);
+      document.getElementById("gpaxNote").textContent = "คำนวณ GPAX รวมเรียบร้อยแล้ว";
     }
 
     function fillExample() {
@@ -650,9 +684,6 @@
       document.getElementById("studentName").value = "ตัวอย่าง นักศึกษา";
       renderAll();
     }
-
-    document.getElementById("studentId").addEventListener("input", renderAll);
-    document.getElementById("studentName").addEventListener("input", renderAll);
 
     renderAll();
   </script>
