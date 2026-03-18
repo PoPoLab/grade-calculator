@@ -420,7 +420,7 @@
         <div class="value" id="grandPoints">0.00</div>
       </div>
       <div class="info-box">
-        <div class="label">GPAX รวม</div>
+        <div class="label">GPAX รวม(วิชาเฉพาะ)</div>
         <div class="value" id="grandGpax">-</div>
       </div>
     </div>
@@ -547,7 +547,7 @@
       let grandCredits = 0;
       let grandPoints = 0;
       let grandCountedCredits = 0;
-      let allFilled = true;
+      let requiredTermsFilled = true;
 
       terms.forEach((term) => {
         const stats = getTermStats(term);
@@ -555,9 +555,11 @@
         grandPoints += stats.totalPoints;
         grandCountedCredits += stats.countedCredits;
 
-        term.courses.forEach(course => {
-          if (course.grade === "") allFilled = false;
-        });
+        if (term.key !== "year2_sem2") {
+          term.courses.forEach(course => {
+            if (course.grade === "") requiredTermsFilled = false;
+          });
+        }
 
         const card = document.createElement("div");
         card.className = "term-card";
@@ -586,7 +588,7 @@
         card.innerHTML = `
           <div class="term-header">
             <h2>${term.label}</h2>
-            <div class="term-sub">กรอกเกรดของรายวิชาในภาคการศึกษานี้ เพื่อคำนวณ GPA แยกภาค</div>
+            <div class="term-sub">${term.key === 'year2_sem2' ? 'หมายเหตุ: หากไม่กรอกเกรดในภาคการศึกษานี้ ระบบจะคิดรายวิชานั้นเป็น F เมื่อต้องคำนวณ GPAX รวม' : 'กรอกเกรดของรายวิชาในภาคการศึกษานี้ เพื่อคำนวณ GPA แยกภาค'}</div>
           </div>
           <div class="term-summary">
             <div class="mini-box">
@@ -632,12 +634,12 @@
 
       const btn = document.getElementById("calculateGpaxBtn");
       const note = document.getElementById("gpaxNote");
-      btn.disabled = !allFilled;
+      btn.disabled = !requiredTermsFilled;
 
-      if (allFilled) {
-        note.textContent = "กรอกเกรดครบแล้ว สามารถกดคำนวณ GPAX รวมได้";
+      if (requiredTermsFilled) {
+        note.textContent = "กรอกเกรดครบ 3 ภาคแรกแล้ว สามารถกดคำนวณ GPAX รวมได้ โดยวิชาที่ไม่กรอกในภาค 4 จะถูกคิดเป็น F";
       } else {
-        note.textContent = "กรอกเกรดให้ครบทุกวิชาก่อน จึงจะสามารถคำนวณ GPAX รวมได้";
+        note.textContent = "ต้องกรอกเกรดให้ครบ 3 ภาคแรกก่อน จึงจะสามารถคำนวณ GPAX รวมได้";
         document.getElementById("grandGpax").textContent = "-";
       }
     }
@@ -649,21 +651,26 @@
     }
 
     function calculateOverallGpax() {
-      const allCourses = terms.flatMap(term => term.courses);
-      const incomplete = allCourses.some(course => course.grade === "");
-      if (incomplete) return;
+      const requiredTerms = terms.filter(term => term.key !== "year2_sem2");
+      const requiredIncomplete = requiredTerms.some(term =>
+        term.courses.some(course => course.grade === "")
+      );
+      if (requiredIncomplete) return;
 
       let totalPoints = 0;
       let totalCredits = 0;
 
-      allCourses.forEach(course => {
-        totalPoints += gradeMap[course.grade] * course.credits;
-        totalCredits += course.credits;
+      terms.forEach(term => {
+        term.courses.forEach(course => {
+          const gradeValue = course.grade === "" ? 0 : gradeMap[course.grade];
+          totalPoints += gradeValue * course.credits;
+          totalCredits += course.credits;
+        });
       });
 
       const gpax = totalCredits > 0 ? totalPoints / totalCredits : 0;
       document.getElementById("grandGpax").textContent = gpax.toFixed(2);
-      document.getElementById("gpaxNote").textContent = "คำนวณ GPAX รวมเรียบร้อยแล้ว";
+      document.getElementById("gpaxNote").textContent = "คำนวณ GPAX รวมเรียบร้อยแล้ว โดยวิชาที่ไม่ได้กรอกในภาคการศึกษาที่ 4 ถูกคิดเป็น F";
     }
 
     function fillExample() {
